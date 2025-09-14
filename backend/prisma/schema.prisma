@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,7 +12,7 @@ model Document {
   id        String   @id @default(cuid())
   title     String
   content   String
-  embedding Unsupported("vector(1536)")? // For OpenAI embeddings (1536 dimensions)
+  embedding Unsupported("vector(1536)")?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -29,8 +30,10 @@ model Chat {
 model Message {
   id        String   @id @default(cuid())
   content   String
-  role      String // 'user' or 'assistant'
+  role      String   // 'user' or 'assistant'
   chatId    String
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+
+  @@index([chatId])
 }
