@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon --watch src --ext ts --exec \"tsx src/index.ts\"",
     "server": "nodemon src/server.js"
   },
   "keywords": [],
@@ -14,6 +14,7 @@
   "description": "",
   "dependencies": {
     "@langchain/community": "^0.3.55",
+    "@paralleldrive/cuid2": "^2.2.2",
     "@prisma/client": "^6.16.1",
     "axios": "^1.12.1",
     "cors": "^2.8.5",
@@ -32,6 +33,7 @@
     "nodemon": "^3.1.10",
     "prisma": "^6.16.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   },
   "packageManager": "pnpm@10.8.0+sha512.0e82714d1b5b43c74610193cb20734897c1d00de89d0e18420aebc5977fa13d780a9cb05734624e81ebd81cc876cd464794850641c48b9544326b5622ca29971"

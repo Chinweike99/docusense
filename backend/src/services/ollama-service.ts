@@ -28,12 +28,13 @@ class OllamaService {
     async generateEmbedding(text: string): Promise<string>{
         try {
             const response = await axios.post(`${this.baseURL}/api/embeddings`, {
-                model: config.OLLAMA_MODEL,
+                model: config.EMBEDDING_MODEL,
                 prompt: text
             })
-            console.log(response);
+            console.log("This is the generated RESPONSE: ", response);
             // return response.data
-            return response.data.embeddings
+            console.log("This is the generated EMBEDDING: ", response.data.embedding);
+            return response.data.embedding
         } catch (error) {
             console.log(error);
             throw Error("Unabale to generate embeddings: ")
