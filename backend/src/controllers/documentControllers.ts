@@ -3,6 +3,10 @@ import { ollamaService } from "../services/ollama-service";
 import { prisma } from "../utils/database";
 import { Document } from "@prisma/client";
 import { createId } from "@paralleldrive/cuid2"; 
+import { extractTextFromPDf } from "../utils/pdfParser";
+import fs from 'fs';
+import path from 'path';
+import { title } from "process";
 
 export const documentController = {
     async createDocument(req: Request, res: Response) {
@@ -16,21 +20,15 @@ export const documentController = {
             }
 
             const embedding = await ollamaService.generateEmbedding(content);
-            console.log("Generated embedding:", embedding);
             if (!embedding) {
   return res.status(500).json({ error: "Failed to generate embedding" });
 }
-            // const [document] = await prisma.$queryRaw<any[]>`
-            // INSERT INTO "Document" (id, title, content, embedding) 
-            // VALUES (${id}, ${title}, ${content}, ${embedding}::vector)
-            // RETURNING *
-            // `;
             const [document] = await prisma.$queryRaw<any[]>`
-    INSERT INTO "Document" (id, title, content, embedding) 
-    VALUES (${id}, ${title}, ${content}, ${embedding}::vector)
-    RETURNING id, title, content, "createdAt", "updatedAt", embedding::text as embedding_text
-`;
-            res.status(201).json({document});
+                INSERT INTO "Document" (id, title, content, embedding) 
+                VALUES (${id}, ${title}, ${content}, ${embedding}::vector)
+                RETURNING id, title, content, "createdAt", "updatedAt", embedding::text as embedding_text
+            `;
+                        res.status(201).json({document});
         } catch (error) {
             console.error("Error creating document:", error);
             res.status(500).json({
@@ -38,6 +36,55 @@ export const documentController = {
             });
         }
     },
+
+    // Upload and process PDF document
+    async uploadDocument(req: Request, res: Response){
+        console.log("Endpoint hit .....")
+        try {
+            const id = createId();
+            console.log("req.file: ....", req.file);
+            if(!req.file){
+                return res.status(400).json({error: 'No file uploaded'})
+            }
+            const {originalname, filename, path: filePath, size} = req.file;
+            const {title} = req.body;
+
+            const content = await extractTextFromPDf(filePath);
+            console.log("Content: ....", content);
+            // Generate summary using Ollama
+            const summary = await ollamaService.generateResponse(`Please provide a concise summary of the following document content:\n\n${content.substring(0, 8000)}`) // Limit content to avoid token limits
+
+            console.log("Summary: ....", summary);
+
+            // Generate Embedding
+            const embedding = await ollamaService.generateEmbedding(content);
+
+            const [document] = await prisma.$queryRaw<any[]>`
+            INSERT INTO "Document" (id, title, content, "fileName", "filePath", "fileSize", embedding)
+            VALUES (${id}, ${title}, ${summary}, ${originalname}, ${filePath}, ${size}, ${embedding}::vector)
+            RETURNING id, title, content, "createdAt", "updatedAt", embedding::text as embedding_text
+            `;
+
+            res.status(201).json({
+                ...document,
+                fullcontent: content,
+                filename: filename,
+                summary: summary
+            })
+
+        } catch (error) {
+            console.error("Error uploading document: ", error);
+            if(req.file){
+                fs.unlink(req.file.path, (err) => {
+                    if(err) console.error("Error deleting file: ", err)
+                });
+            };
+            res.status(500).json({
+                error: 'Failed to upload and process document'
+            })
+        }
+    },
+
 
 
     async getDocuments(req: Request, res: Response){
@@ -143,11 +190,48 @@ export const documentController = {
             console.error('Error searching documents:', error);
             res.status(500).json({ error: 'Failed to search documents' });
         }
+    },
+
+    // Generate summary for a document
+    async generateDocumentSummary(req: Request, res: Response) {
+        try {
+            const {id} = req.params;
+            const { length } = req.body;
+            const document = await prisma.document.findUnique({where: {id}});
+            if(!document){
+                return res.status(404).json({error: "Document not found"});
+            }
+            let content = document.content;
+            if(document.fileName && fs.existsSync(document.filePath as string) ){
+                content = await extractTextFromPDf(document.filePath as string);
+            };
+            // Determine summary length based on user preference
+            let summaryLength = ''; 
+            switch(length){
+                case 'short':
+                    summaryLength = "Provide a brief summary in 2-3 sentences.";
+                    break;
+                case 'long':
+                    summaryLength = "Provide a detailed summary (about a paragraph).";
+                    break;
+                default:
+                    summaryLength = "Provide a concise summary (about 5-6 sentences).";
+            }
+
+            //Generate summary using Ollama
+            const summary = await ollamaService.generateResponse(`Please provide a ${summaryLength} summary of the following document content:\n\n${content.substring(0, 8000)}`) // Limit content to avoid token limits
+
+            res.json({
+                documentId: id,
+                title: document.title,
+                summary,
+                length: length || 'concise'
+            })
+            console.log("Generated summary:", summary);
+        } catch (error) {
+            console.error('Error summarizing document:', error);
+            res.status(500).json({ error: 'Failed to generate summary' });
+        }
     }
 
-
 }
-
-// function cuid(): any {
-//     throw new Error("Function not implemented.");
-// }

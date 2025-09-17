@@ -12,6 +12,9 @@ model Document {
   id        String                 @id @default(cuid())
   title     String
   content   String
+  fileName  String?
+  filePath  String?
+  fileSize  Int?
   createdAt DateTime               @default(now())
   updatedAt DateTime               @default(now()) @updatedAt
   embedding Unsupported("vector")?

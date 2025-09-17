@@ -17,7 +17,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api', documentRoutes);
+app.use('/api/documents', documentRoutes);
 // app.use('/api', chatRoutes);
 
 // Health check endpoint

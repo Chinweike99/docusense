@@ -10,12 +10,17 @@ class OllamaService {
         this.baseURL = config.OLLAMA_BASE_URL;
     }
 
-    async generateResponse(prompt: string): Promise<string>{
+    async generateResponse(prompt: string, options: any = {}): Promise<string>{
         try {
             const response = await axios.post(`${this.baseURL}/api/generate`, {
                 model: config.OLLAMA_MODEL,
                 prompt,
-                stream: false
+                stream: false,
+                options: {
+                    temperature: 0.7,
+                    top_p: 0.9,
+                    ...options
+                }
             });
             return response.data.response
         } catch (error) {
@@ -31,14 +36,32 @@ class OllamaService {
                 model: config.EMBEDDING_MODEL,
                 prompt: text
             })
-            console.log("This is the generated RESPONSE: ", response);
-            // return response.data
-            console.log("This is the generated EMBEDDING: ", response.data.embedding);
             return response.data.embedding
         } catch (error) {
             console.log(error);
             throw Error("Unabale to generate embeddings: ")
         }
+    }
+
+    async generateSummary(text: string, length: string = 'mdeium'): Promise<string>{
+        let lengthPrompt = '';
+    switch (length) {
+      case 'short':
+        lengthPrompt = 'Provide a very brief summary (2-3 sentences)';
+        break;
+      case 'long':
+        lengthPrompt = 'Provide a detailed summary (about a paragraph)';
+        break;
+      default:
+        lengthPrompt = 'Provide a concise summary (about 5-6 sentences)';
+    }
+
+    const prompt = `${lengthPrompt} of the following text:\n\n${text.substring(0, 8000)}`;
+    
+    return this.generateResponse(prompt, {
+      temperature: 0.3, // Lower temperature for more factual summaries
+      top_p: 0.8
+    });
     }
 }
 

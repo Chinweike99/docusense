@@ -23,13 +23,17 @@
     "helmet": "^8.1.0",
     "langchain": "^0.3.33",
     "morgan": "^1.10.1",
-    "ollama": "^0.5.17"
+    "multer": "^2.0.2",
+    "ollama": "^0.5.17",
+    "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.0.0",
     "@types/node": "^24.3.3",
+    "@types/pdf-parse": "^1.1.5",
     "nodemon": "^3.1.10",
     "prisma": "^6.16.1",
     "ts-node": "^10.9.2",
