@@ -39,10 +39,8 @@ export const documentController = {
 
     // Upload and process PDF document
     async uploadDocument(req: Request, res: Response){
-        console.log("Endpoint hit .....")
         try {
             const id = createId();
-            console.log("req.file: ....", req.file);
             if(!req.file){
                 return res.status(400).json({error: 'No file uploaded'})
             }
@@ -50,11 +48,8 @@ export const documentController = {
             const {title} = req.body;
 
             const content = await extractTextFromPDf(filePath);
-            console.log("Content: ....", content);
             // Generate summary using Ollama
             const summary = await ollamaService.generateResponse(`Please provide a concise summary of the following document content:\n\n${content.substring(0, 8000)}`) // Limit content to avoid token limits
-
-            console.log("Summary: ....", summary);
 
             // Generate Embedding
             const embedding = await ollamaService.generateEmbedding(content);
@@ -84,7 +79,6 @@ export const documentController = {
             })
         }
     },
-
 
 
     async getDocuments(req: Request, res: Response){
@@ -194,6 +188,7 @@ export const documentController = {
 
     // Generate summary for a document
     async generateDocumentSummary(req: Request, res: Response) {
+        console.log("Received request to summarize document hit .....");
         try {
             const {id} = req.params;
             const { length } = req.body;
@@ -201,6 +196,7 @@ export const documentController = {
             if(!document){
                 return res.status(404).json({error: "Document not found"});
             }
+            console.log("Document found: ", document);
             let content = document.content;
             if(document.fileName && fs.existsSync(document.filePath as string) ){
                 content = await extractTextFromPDf(document.filePath as string);
@@ -220,6 +216,7 @@ export const documentController = {
 
             //Generate summary using Ollama
             const summary = await ollamaService.generateResponse(`Please provide a ${summaryLength} summary of the following document content:\n\n${content.substring(0, 8000)}`) // Limit content to avoid token limits
+            console.log("This is the generated summary: ", summary);
 
             res.json({
                 documentId: id,
