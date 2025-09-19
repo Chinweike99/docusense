@@ -54,10 +54,16 @@ export const documentController = {
             // Generate Embedding
             const embedding = await ollamaService.generateEmbedding(content);
 
+            // const [document] = await prisma.$queryRaw<any[]>`
+            // INSERT INTO "Document" (id, title, content, "fileName", "filePath", "fileSize", embedding)
+            // VALUES (${id}, ${title}, ${summary}, ${originalname}, ${filePath}, ${size}, ${embedding}::vector)
+            // RETURNING id, title, content, "createdAt", "updatedAt", embedding::text as embedding_text
+            // `;
+
             const [document] = await prisma.$queryRaw<any[]>`
-            INSERT INTO "Document" (id, title, content, "fileName", "filePath", "fileSize", embedding)
-            VALUES (${id}, ${title}, ${summary}, ${originalname}, ${filePath}, ${size}, ${embedding}::vector)
-            RETURNING id, title, content, "createdAt", "updatedAt", embedding::text as embedding_text
+            INSERT INTO "Document" (id, title, content, summary, "fileName", "filePath", "fileSize", embedding)
+            VALUES (${id}, ${title}, ${content}, ${summary}, ${originalname}, ${filePath}, ${size}, ${embedding}::vector)
+            RETURNING id, title, content, summary, "createdAt", "updatedAt", embedding::text as embedding_text
             `;
 
             res.status(201).json({
@@ -163,28 +169,57 @@ export const documentController = {
 
     // Search document by semantic simalrities
 
+    // async searchDocument(req: Request, res: Response) {
+    //     try {
+    //         const {query} = req.body;
+    //         if(!query){
+    //             return res.status(400).json({ error: 'Query is required' });
+    //         };
+
+    //         const queryEmbedding = await ollamaService.generateEmbedding(query);
+    //         const documents = await prisma.$queryRaw`
+    //             SELECT id, title, content, 
+    //                 embedding <-> ${queryEmbedding}::vector as similarity
+    //             FROM "Document"
+    //             ORDER BY similarity ASC
+    //             LIMIT 5
+    //         `;
+
+    //          res.json(documents);
+    //     } catch (error) {
+    //         console.error('Error searching documents:', error);
+    //         res.status(500).json({ error: 'Failed to search documents' });
+    //     }
+    // },
+
+
     async searchDocument(req: Request, res: Response) {
-        try {
-            const {query} = req.body;
-            if(!query){
-                return res.status(400).json({ error: 'Query is required' });
-            };
-
-            const queryEmbedding = await ollamaService.generateEmbedding(query);
-            const documents = await prisma.$queryRaw`
-                SELECT id, title, content, 
-                    embedding <-> ${queryEmbedding} as similarity
-                FROM "Document"
-                ORDER BY similarity ASC
-                LIMIT 5
-            `;
-
-             res.json(documents);
-        } catch (error) {
-            console.error('Error searching documents:', error);
-            res.status(500).json({ error: 'Failed to search documents' });
+    try {
+        const {query} = req.body;
+        if(!query){
+            return res.status(400).json({ error: 'Query is required' });
         }
-    },
+        const docs = await this.searchDocumentInternal(query);
+        res.json(docs);
+    } catch (error) {
+        console.error('Error searching documents:', error);
+        res.status(500).json({ error: 'Failed to search documents' });
+    }
+},
+
+
+    async searchDocumentInternal(query: string) {
+    const queryEmbedding = await ollamaService.generateEmbedding(query);
+    return await prisma.$queryRaw<any[]>`
+        SELECT id, title, content, 
+               embedding <-> ${queryEmbedding}::vector as distance
+        FROM "Document"
+        ORDER BY distance ASC
+        LIMIT 5
+    `;
+},
+
+
 
     // Generate summary for a document
     async generateDocumentSummary(req: Request, res: Response) {
@@ -196,7 +231,6 @@ export const documentController = {
             if(!document){
                 return res.status(404).json({error: "Document not found"});
             }
-            console.log("Document found: ", document);
             let content = document.content;
             if(document.fileName && fs.existsSync(document.filePath as string) ){
                 content = await extractTextFromPDf(document.filePath as string);
@@ -216,15 +250,13 @@ export const documentController = {
 
             //Generate summary using Ollama
             const summary = await ollamaService.generateResponse(`Please provide a ${summaryLength} summary of the following document content:\n\n${content.substring(0, 8000)}`) // Limit content to avoid token limits
-            console.log("This is the generated summary: ", summary);
-
             res.json({
                 documentId: id,
                 title: document.title,
                 summary,
+                content,
                 length: length || 'concise'
             })
-            console.log("Generated summary:", summary);
         } catch (error) {
             console.error('Error summarizing document:', error);
             res.status(500).json({ error: 'Failed to generate summary' });
