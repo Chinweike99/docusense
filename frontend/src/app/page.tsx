@@ -19,7 +19,6 @@ export default function Home() {
   const loadChats = async()=>{
     try {
       const response = await chatAPI.getAll();
-      console.log("Chats loaded: ", response.data.chat)
       setChats(response.data.chat)
     } catch (error) {
       console.error("Failed to load chats: ", error)

@@ -1,6 +1,7 @@
 // frontend/src/components/DocumentList.tsx
 import { Document } from '@/types';
 import { PencilIcon, TrashIcon } from 'lucide-react';
+import DocumentContent from './DocumentContent';
 
 
 interface DocumentListProps {
@@ -40,8 +41,9 @@ export default function DocumentList({ documents, onEdit, onDelete }: DocumentLi
             </div>
           </div>
           
-          <p className="text-gray-600 mb-4 whitespace-pre-wrap line-clamp-3">
-            {document.content}
+          <p className="text-gray-600 mb-4 whitespace-pre-wrap">
+            {/* {document.content} */}
+            <DocumentContent content = {document.content} />
           </p>
           
           <div className="text-sm text-gray-500">
