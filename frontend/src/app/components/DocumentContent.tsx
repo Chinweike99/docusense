@@ -10,9 +10,9 @@ function DocumentContent({ content }: { content: string }) {
 
   return (
     <div>
-      <p className="text-gray-600 mb-2 whitespace-pre-wrap">
+      <span className="text-gray-600 mb-2 whitespace-pre-wrap">
         {displayText}
-      </p>
+      </span>
 
       {shouldTruncate && (
         <button

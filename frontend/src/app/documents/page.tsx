@@ -11,6 +11,7 @@ export default function DocumentsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     loadDocuments();
@@ -47,7 +48,7 @@ export default function DocumentsPage() {
     }
   };
 
-  const handleFormSubmit = async (data: { title: string; content: string }) => {
+  const handleTextSubmit = async (data: { title: string; content: string }) => {
     try {
       if (editingDocument) {
         await documentAPI.update(editingDocument.id, data);
@@ -61,6 +62,36 @@ export default function DocumentsPage() {
       console.error('Failed to save document:', error);
     }
   };
+
+  const handleFileUpload = async (file: File, title: string) => {
+    try {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append("title", title);
+
+      const response = await documentAPI.upload(formData);
+      setDocuments(prev => [response.data, ...prev]);
+      setShowForm(false)
+
+    } catch (error) {
+      console.log("Failed to upload Document: ", error)
+    } finally {
+      setIsUploading(false)
+    }
+  };
+
+  const handleSummarize = async (id: string, length: string = 'medium') => {
+    try {
+      const response = await documentAPI.summerize(id, length);
+      alert(`Summary (${response.data.length}):\n\n${response.data.summary}`);
+    } catch (error) {
+      console.error('Failed to generate summary:', error);
+    }
+  };
+
+
+
 
   if (isLoading) {
     return (
@@ -83,13 +114,15 @@ export default function DocumentsPage() {
       </div>
 
       {showForm && (
-        <DocumentForm
+         <DocumentForm
           document={editingDocument}
-          onSubmit={handleFormSubmit}
+          onSubmit={handleTextSubmit}
+          onUpload={handleFileUpload}
           onCancel={() => {
             setShowForm(false);
             setEditingDocument(null);
           }}
+          isUploading={isUploading}
         />
       )}
 
@@ -97,6 +130,7 @@ export default function DocumentsPage() {
         documents={documents}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onSummarize={handleSummarize}
       />
     </div>
   );

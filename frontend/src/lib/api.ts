@@ -27,6 +27,16 @@ export const documentAPI = {
     },
     search: (query: string) => {
         return api.post('/documents/search', {query})
+    }, 
+    upload: (formData: FormData) => {
+        return api.post('/documents/upload', formData, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        })
+    },
+    summerize: (id: string, length: string = "medium") => {
+        return api.post(`/documents/${id}/summarize`, {length})
     }
 };
 

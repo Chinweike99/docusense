@@ -4,6 +4,8 @@ export interface Document {
     content: string;
     createdAt: string;
     updatedAt: string;
+    fileName: string;
+    fileSize: number;
 }
 
 export interface Message {
