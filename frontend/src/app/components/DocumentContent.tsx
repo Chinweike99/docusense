@@ -10,7 +10,7 @@ function DocumentContent({ content }: { content: string }) {
 
   return (
     <div>
-      <span className="text-gray-600 mb-2 whitespace-pre-wrap">
+      <span className="text-gray-300 mb-2 whitespace-pre-wrap">
         {displayText}
       </span>
 

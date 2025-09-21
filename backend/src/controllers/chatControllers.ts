@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../utils/database";
 import { documentController } from "./documentControllers";
-import { Document } from "@prisma/client";
 import { ollamaService } from "../services/ollama-service";
-import { AnyARecord } from "dns";
 
 
 
@@ -17,7 +15,8 @@ export const chatController  = {
             const chat = await prisma.chat.create({
                 data:{
                     title: title || "New Chat"
-                }
+                },
+                include: {messages: true}
             });
             res.status(201).json({
                 chat: chat
