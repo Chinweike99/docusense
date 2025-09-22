@@ -40,33 +40,11 @@ export default function Navigation() {
     visible: { opacity: 1, y: 0 },
   };
 
-  const logoVariants = {
-    initial: { scale: 1 },
-    hover: { 
-      scale: 1.05,
-      transition: { duration: 0.2, ease: "easeInOut" }
-    },
-    tap: { scale: 0.95 }
-  };
-
-  const sparkleVariants = {
-    animate: {
-      rotate: [0, 360],
-      scale: [1, 1.2, 1],
-      transition: {
-        duration: 3,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    }
-  };
 
   return (
     <motion.nav
       className="bg-gradient-to-r from-slate-900/70 via-slate-800 to-slate-900 backdrop-blur-lg border-b border-slate-700/50 sticky top-0 z-50"
       initial="hidden"
-      animate="visible"
-      // variants={containerVariants}
     >
       <div className="container mx-auto px-6">
         <div className="flex justify-between items-center h-20">
@@ -77,14 +55,12 @@ export default function Navigation() {
           >
             <motion.div
               className="relative"
-              // variants={logoVariants}
               initial="initial"
               whileHover="hover"
               whileTap="tap"
             >
               <motion.div
                 className="absolute -inset-1 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 rounded-full blur opacity-30"
-                // variants={sparkleVariants}
                 animate="animate"
               />
               <div className="relative bg-slate-800 p-2 rounded-full border border-slate-600">
@@ -134,7 +110,6 @@ export default function Navigation() {
                       }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      {/* Active background with gradient */}
                       {isActive && (
                         <motion.div
                           className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-cyan-500/20 rounded-xl border border-blue-500/30"

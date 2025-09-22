@@ -56,8 +56,6 @@ export default function Home() {
     try {
       const response = await chatAPI.sendMessage(selectedChat.id, content);
       const {userMessage, assistantmessage} = response.data;
-
-      // Update the chat with new messages
       const updatedChat = {
         ...selectedChat,
         messages: [
