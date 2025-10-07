@@ -14,6 +14,18 @@ A **Retrieval-Augmented Generation (RAG)** chatbot built with **Node.js**, **Typ
 
 ---
 
+### Upload and Chat Interface
+![Upload Document](./assets/docusense2.jpeg)
+
+### Document Summary Example
+![Document Summary](./assets/docusense3.jpeg)
+
+### Retrieved Query from Uploaded Documents
+![Retrieved Information](./assets/docusense4.jpeg)
+
+### Generated Embeddings
+![Generated Embeddings](./assets/docusense.jpeg)
+
 ## 🛠 Tech Stack
 
 ### Backend
@@ -87,7 +99,4 @@ npm run dev
 ```bash
 http://localhost:3000
 ```
-
-
-
 
